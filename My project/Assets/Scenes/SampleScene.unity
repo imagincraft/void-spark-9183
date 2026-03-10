@@ -152,9 +152,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e342ed951e0a04c42bb580966490675f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridParent: {fileID: 1311028153}
+  gridContainer: {fileID: 1311028153}
   cardPrefab: {fileID: 2783226147736739148, guid: b4ce8ca91d75c2d48adb022bbced4f6b, type: 3}
-  gridSize: {x: 3, y: 3}
+  uniqueCardImages:
+  - {fileID: 21300000, guid: e38f1cd51097a244499ee107190593bf, type: 3}
+  - {fileID: 21300000, guid: d68cfbc528e52ac4c894c47f313f22b6, type: 3}
+  - {fileID: 21300000, guid: 78c69951dffe4584cb69da2b0912ea6b, type: 3}
+  - {fileID: 21300000, guid: 90c18d80356ad7445a2d88cd7c3f2147, type: 3}
+  - {fileID: 21300000, guid: 8e3ac8764e7faf540acb05bda22763a9, type: 3}
+  - {fileID: 21300000, guid: f199fe51849f133459fb233cc1bf625e, type: 3}
+  - {fileID: 21300000, guid: 105bbfc733b24684ebda2d497e554238, type: 3}
+  - {fileID: 21300000, guid: 31ae6dda64405d24391b1b6820d36682, type: 3}
+  - {fileID: 21300000, guid: f199fe51849f133459fb233cc1bf625e, type: 3}
+  rows: 4
+  columns: 3
 --- !u!4 &63548245
 Transform:
   m_ObjectHideFlags: 0
@@ -393,7 +404,7 @@ MonoBehaviour:
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 0
+  m_ChildControlWidth: 1
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
@@ -433,7 +444,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 150}
+  m_SizeDelta: {x: 0, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &423698862
 GameObject:
@@ -806,7 +817,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 150}
+  m_SizeDelta: {x: 0, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1001353385
 MonoBehaviour:
@@ -1141,7 +1152,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -75}
-  m_SizeDelta: {x: 0, y: -150}
+  m_SizeDelta: {x: 0, y: -200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1243691784
 MonoBehaviour:
@@ -1402,7 +1413,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 150}
+  m_SizeDelta: {x: 0, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1343754893
 MonoBehaviour:

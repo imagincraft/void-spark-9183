@@ -5,64 +5,90 @@ using System.Collections.Generic;
 public class GridManager : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Transform gridParent;           // Drag CardGrid here
-    [SerializeField] private GameObject cardPrefab;          // Drag Card prefab here
+    [SerializeField] private Transform gridContainer;      // ← Drag CardGridContainer here
+    [SerializeField] private GameObject cardPrefab;        // ← Drag Card prefab here
 
-    [Header("Test Layouts")]
-    public Vector2Int gridSize = new Vector2Int(4, 4);       // Change this in Inspector to test
+    [Header("Images to use (put your unique sprites here)")]
+    [SerializeField] private List<Sprite> uniqueCardImages;   // ← Drag your 3+ images here
+
+    [Header("Grid Size")]
+    [SerializeField] private int rows ;
+    [SerializeField] private int columns ;
 
     private List<GameObject> spawnedCards = new List<GameObject>();
 
-    private void Start()
+    void Start()
     {
-        GenerateGrid(gridSize.x, gridSize.y);
+        CreateGridWithImages(rows, columns);
     }
 
-    // Call this anytime to change layout (2x2, 3x3, 5x6, etc.)
-    public void GenerateGrid(int rows, int columns)
+    public void CreateGridWithImages(int rowCount, int colCount)
     {
         // Clear old cards
         foreach (GameObject card in spawnedCards)
-            Destroy(card);
+            if (card != null) Destroy(card);
         spawnedCards.Clear();
 
-        int totalCards = rows * columns;
-        if (totalCards % 2 == 1) columns--; // keep even number of cards
+        // Make sure we have even number of cards
+        if ((rowCount * colCount) % 2 == 1) colCount--;
 
-        // Create simple placeholder cards
-        for (int i = 0; i < rows * columns; i++)
+        int totalCards = rowCount * colCount;
+        int pairsNeeded = totalCards / 2;
+
+        // Check we have enough unique images
+        if (pairsNeeded > uniqueCardImages.Count)
         {
-            GameObject card = Instantiate(cardPrefab, gridParent);
-            spawnedCards.Add(card);
+            Debug.LogError("Not enough unique images! Using all available.");
+            pairsNeeded = uniqueCardImages.Count;
         }
 
-        // AUTO-SCALE to perfectly fit the CardGrid container
-        AutoScaleToFit(rows, columns);
+        // Step 1: Create list with pairs (duplicate each image)
+        List<Sprite> cardList = new List<Sprite>();
+        for (int i = 0; i < pairsNeeded; i++)
+        {
+            cardList.Add(uniqueCardImages[i]);
+            cardList.Add(uniqueCardImages[i]);   // duplicate = pair
+        }
+
+        // Step 2: Shuffle the list
+        Shuffle(cardList);
+
+        // Step 3: Spawn cards and assign images
+        for (int i = 0; i < cardList.Count; i++)
+        {
+            GameObject cardObj = Instantiate(cardPrefab, gridContainer);
+            Card cardScript = cardObj.GetComponent<Card>();
+
+            cardScript.SetImage(cardList[i]);     // ← This assigns the sprite
+
+            spawnedCards.Add(cardObj);
+        }
+
+        // Auto scale (same as before)
+        UpdateCellSize(rowCount, colCount);
+
+        Debug.Log($"Spawned {cardList.Count} cards with {pairsNeeded} unique image pairs");
     }
 
-    private void AutoScaleToFit(int rows, int columns)
+    private void Shuffle(List<Sprite> list)
     {
-        GridLayoutGroup grid = gridParent.GetComponent<GridLayoutGroup>();
-        RectTransform gridRect = gridParent.GetComponent<RectTransform>();
-
-        if (grid == null || gridRect == null) return;
-
-        float availableWidth  = gridRect.rect.width  - (grid.spacing.x * (columns - 1));
-        float availableHeight = gridRect.rect.height - (grid.spacing.y * (rows - 1));
-
-        float cellWidth  = availableWidth  / columns;
-        float cellHeight = availableHeight / rows;
-
-        // Keep cards perfectly square (best look)
-        float finalSize = Mathf.Min(cellWidth, cellHeight);
-
-        grid.cellSize = new Vector2(finalSize, finalSize);
+        for (int i = list.Count - 1; i > 0; i--)
+        {
+            int rnd = Random.Range(0, i + 1);
+            (list[i], list[rnd]) = (list[rnd], list[i]);
+        }
     }
 
-    // Optional: public method so you can call from buttons later
-    public void ChangeLayout(int rows, int columns)
+    private void UpdateCellSize(int rows, int cols)
     {
-        gridSize = new Vector2Int(rows, columns);
-        GenerateGrid(rows, columns);
+        var grid = gridContainer.GetComponent<GridLayoutGroup>();
+        var rect = gridContainer.GetComponent<RectTransform>();
+        if (grid == null || rect == null) return;
+
+        float totalW = rect.rect.width - grid.spacing.x * (cols - 1);
+        float totalH = rect.rect.height - grid.spacing.y * (rows - 1);
+
+        float size = Mathf.Min(totalW / cols, totalH / rows);
+        grid.cellSize = new Vector2(size, size);
     }
 }
