@@ -1,0 +1,28 @@
+# Unity generated & big folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Package cache & burst runtimes (huge!)
+/Library/PackageCache/
+/[Pp]ackages/packages-lock.json  # optional - keep manifest if you want locked deps
+/Library/ArtifactDB/
+/Library/com.unity.burst/
+
+# IDE junk
+.vs/
+*.csproj
+*.sln
+*.unityproj
+.DS_Store
+Thumbs.db
+
+# Don't ignore these small important ones
+!/[Pp]ackages/manifest.json
+!ProjectSettings/
