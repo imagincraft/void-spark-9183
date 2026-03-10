@@ -5,90 +5,82 @@ using System.Collections.Generic;
 public class GridManager : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private Transform gridContainer;      // ← Drag CardGridContainer here
-    [SerializeField] private GameObject cardPrefab;        // ← Drag Card prefab here
+    [SerializeField] private Transform gridContainer;
+    [SerializeField] private Card cardComponentPrefab;           // reference to Card script on prefab (for GetComponent)
 
-    [Header("Images to use (put your unique sprites here)")]
-    [SerializeField] private List<Sprite> uniqueCardImages;   // ← Drag your 3+ images here
+    [Header("Dependencies (assign concrete implementations here)")]
+    [SerializeField] private CardFactory cardFactoryComponent;          // ← concrete class
+    [SerializeField] private GridLayoutConfigurator layoutConfiguratorComponent;  // ← concrete class
+
+    private ICardFactory cardFactory;     // runtime interface reference
+    private IGridLayoutConfigurator layoutConfigurator;
+    
+    [Header("Images")]
+    [SerializeField] private List<Sprite> uniqueCardImages;
 
     [Header("Grid Size")]
-    [SerializeField] private int rows ;
-    [SerializeField] private int columns ;
+    [SerializeField] private int rows = 2;
+    [SerializeField] private int columns = 2;
 
-    private List<GameObject> spawnedCards = new List<GameObject>();
+    private readonly List<GameObject> spawnedCards = new List<GameObject>();
 
-    void Start()
+    private void Awake()
     {
-        CreateGridWithImages(rows, columns);
+        // Get the interfaces from the concrete components
+        cardFactory = cardFactoryComponent;
+        layoutConfigurator = layoutConfiguratorComponent;
+
+        if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
+        if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);
     }
 
-    public void CreateGridWithImages(int rowCount, int colCount)
+    private void Start()
     {
-        // Clear old cards
-        foreach (GameObject card in spawnedCards)
-            if (card != null) Destroy(card);
-        spawnedCards.Clear();
+        GenerateGrid(rows, columns);
+    }
 
-        // Make sure we have even number of cards
-        if ((rowCount * colCount) % 2 == 1) colCount--;
+    public void GenerateGrid(int rowCount, int colCount)
+    {
+        ClearPreviousCards();
 
         int totalCards = rowCount * colCount;
-        int pairsNeeded = totalCards / 2;
 
-        // Check we have enough unique images
-        if (pairsNeeded > uniqueCardImages.Count)
-        {
-            Debug.LogError("Not enough unique images! Using all available.");
-            pairsNeeded = uniqueCardImages.Count;
-        }
+        // Spawn cards via factory
+        cardFactory.CreateCards(
+            gridContainer,
+            totalCards,
+            uniqueCardImages,
+            (cardObj, sprite) =>
+            {
+                spawnedCards.Add(cardObj);
+                var card = cardObj.GetComponent<Card>();
+                if (card != null) card.SetImage(sprite);
+                else Debug.LogWarning("Card component missing on spawned object!", cardObj);
+            });
 
-        // Step 1: Create list with pairs (duplicate each image)
-        List<Sprite> cardList = new List<Sprite>();
-        for (int i = 0; i < pairsNeeded; i++)
-        {
-            cardList.Add(uniqueCardImages[i]);
-            cardList.Add(uniqueCardImages[i]);   // duplicate = pair
-        }
-
-        // Step 2: Shuffle the list
-        Shuffle(cardList);
-
-        // Step 3: Spawn cards and assign images
-        for (int i = 0; i < cardList.Count; i++)
-        {
-            GameObject cardObj = Instantiate(cardPrefab, gridContainer);
-            Card cardScript = cardObj.GetComponent<Card>();
-
-            cardScript.SetImage(cardList[i]);     // ← This assigns the sprite
-
-            spawnedCards.Add(cardObj);
-        }
-
-        // Auto scale (same as before)
-        UpdateCellSize(rowCount, colCount);
-
-        Debug.Log($"Spawned {cardList.Count} cards with {pairsNeeded} unique image pairs");
-    }
-
-    private void Shuffle(List<Sprite> list)
-    {
-        for (int i = list.Count - 1; i > 0; i--)
-        {
-            int rnd = Random.Range(0, i + 1);
-            (list[i], list[rnd]) = (list[rnd], list[i]);
-        }
-    }
-
-    private void UpdateCellSize(int rows, int cols)
-    {
-        var grid = gridContainer.GetComponent<GridLayoutGroup>();
+        // Apply layout
+        var gridLayout = gridContainer.GetComponent<GridLayoutGroup>();
         var rect = gridContainer.GetComponent<RectTransform>();
-        if (grid == null || rect == null) return;
 
-        float totalW = rect.rect.width - grid.spacing.x * (cols - 1);
-        float totalH = rect.rect.height - grid.spacing.y * (rows - 1);
+        if (gridLayout != null && rect != null)
+        {
+            layoutConfigurator.ConfigureCellSize(gridLayout, rect, rowCount, colCount);
+        }
+    }
 
-        float size = Mathf.Min(totalW / cols, totalH / rows);
-        grid.cellSize = new Vector2(size, size);
+    private void ClearPreviousCards()
+    {
+        foreach (var card in spawnedCards)
+            if (card != null) Destroy(card);
+
+        spawnedCards.Clear();
+    }
+
+    // Optional: public method for changing layout at runtime
+    public void ChangeLayout(int newRows, int newColumns)
+    {
+        rows = newRows;
+        columns = newColumns;
+        GenerateGrid(newRows, newColumns);
     }
 }
