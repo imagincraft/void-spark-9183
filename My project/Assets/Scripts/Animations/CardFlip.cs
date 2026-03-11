@@ -8,8 +8,8 @@ public class CardFlip : MonoBehaviour
     [SerializeField] private GameObject backSide;
     [SerializeField] private RectTransform visualRoot; // assign VisualRoot here
 
-    [SerializeField] private float flipDuration = 0.4f;
-    [SerializeField] private float delayBeforeFlip = 1.0f;
+    [SerializeField] private float flipDuration = 0.2f;
+    [SerializeField] private float delayBeforeFlip = 0.5f;
 
     private Button button;
     private bool isFlipped = false;
@@ -17,6 +17,7 @@ public class CardFlip : MonoBehaviour
 
 // NEW: dependency
     private IGameState gameState;
+    private IAudioService audioService;
 
     private void Awake()
     {
@@ -34,6 +35,8 @@ public class CardFlip : MonoBehaviour
     private void Start()
     {
         gameState = GameManager.Instance.GameTurnStateService;
+        audioService = GameManager.Instance.AudioService;
+        
         frontSide.SetActive(true);
         backSide.SetActive(false);
         visualRoot.localRotation = Quaternion.identity;
@@ -56,6 +59,7 @@ public class CardFlip : MonoBehaviour
 
         if (isAnimating || !isFlipped || !gameState.CanFlipMore) return;
 
+        audioService.PlayAudio(AudioType.ButtonClick);
         StartCoroutine(FlipToFront());
         gameState.AddFlippedCard(card);
     }

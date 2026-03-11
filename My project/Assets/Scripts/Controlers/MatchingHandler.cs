@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class MatchingHandler : MonoBehaviour
@@ -8,34 +9,90 @@ public class MatchingHandler : MonoBehaviour
     private ICardMatcher matcher;
     private IGameState gameState;
     private IScoreService scoreService;
+    private IAudioService audioService;
+    private IUiManagerService uiManager;
 
-    [SerializeField] private float revealDelay = 1f;
-    [SerializeField] private float flipBackDelay = 0.6f;
+    [SerializeField] private float revealDelay = 0.2f;
+    [SerializeField] private float flipBackDelay = 0.1f;
+    private int matchedPairs = 0;
+    private int totalPairs = 0;
+
+
+    [SerializeField] public GameObject wonPanel;
+    
+    private Queue<(Card, Card)> matchQueue = new Queue<(Card, Card)>();
+    private bool isProcessingQueue = false;
 
     private void Start()
     {
         matcher = GameManager.Instance.CardMatcherService;
         gameState = GameManager.Instance.GameTurnStateService;
         scoreService = GameManager.Instance.ScoreService;
+        audioService = GameManager.Instance.AudioService;
+        uiManager = GameManager.Instance.UiManagerService;
 
         if (matcher == null || gameState == null)
         {
             Debug.LogError("Matcher or GameState missing!", this);
         }
     }
+    
+    
+    private void OnEnable()
+    {
+        LevelEvents.OnLevelLoaded += OnLevelLoaded;
+    }
+
+    private void OnDisable()
+    {
+        LevelEvents.OnLevelLoaded -= OnLevelLoaded;
+    }
+
+    private void OnLevelLoaded(LevelData level)
+    {
+        matchQueue.Clear();
+        isProcessingQueue = false;
+
+        matchedPairs = 0;
+        totalPairs = (level.rows * level.columns) / 2;
+    }
+
+
 
     private void Update()
     {
         var flipped = gameState.GetFlippedCards();
-        if (flipped.Count == 2 && !isCheckingMatch) // prevent multiple coroutines
+
+        if (flipped.Count >= 2)
         {
-            isCheckingMatch = true;
-            Debug.Log($"[Matching] 2 cards flipped - checking {flipped[0].PairId} vs {flipped[1].PairId}");
-            StartCoroutine(CheckMatchRoutine(flipped[0], flipped[1]));
+            var first = flipped[0];
+            var second = flipped[1];
+
+            matchQueue.Enqueue((first, second));
+
+            // Remove them from the flipped list
+            (gameState as GameTurnState)?.RemoveFirstTwo();
+
+            if (!isProcessingQueue)
+                StartCoroutine(ProcessQueue());
         }
     }
+    
+    private IEnumerator ProcessQueue()
+    {
+        isProcessingQueue = true;
 
-    private bool isCheckingMatch = false;
+        while (matchQueue.Count > 0)
+        {
+            var pair = matchQueue.Dequeue();
+            yield return StartCoroutine(CheckMatchRoutine(pair.Item1, pair.Item2));
+        }
+
+        isProcessingQueue = false;
+    }
+    
+
+    // private bool isCheckingMatch = false;
 
     private IEnumerator CheckMatchRoutine(Card first, Card second)
     {
@@ -47,13 +104,27 @@ public class MatchingHandler : MonoBehaviour
         scoreService.AddTurn();
         if (match)
         {
+            
+            audioService.PlayAudio(AudioType.ImageClicking);
             scoreService.AddScore(1);
+            
+            matchedPairs++;
+            
+            if (matchedPairs >= totalPairs)
+            {
+                Debug.Log("ALL MATCHES FOUND!");
+                audioService.PlayAudio(AudioType.PanelOpen);
+                uiManager.OpenPanel(wonPanel);
+               
+            }
+            
             Debug.Log("[Matching] MATCH! Keeping face up");
             first.GetComponent<Button>().interactable = false;
             second.GetComponent<Button>().interactable = false;
         }
         else
         {
+            audioService.PlayAudio(AudioType.Error);
             Debug.Log("[Matching] NO MATCH - flipping back");
             yield return new WaitForSeconds(flipBackDelay);
 
@@ -73,7 +144,8 @@ public class MatchingHandler : MonoBehaviour
             else Debug.LogWarning("No CardFlip on second card");
         }
 
+        /*
         gameState.ClearFlippedCards();
-        isCheckingMatch = false;
+        isCheckingMatch = false;*/
     }
 }

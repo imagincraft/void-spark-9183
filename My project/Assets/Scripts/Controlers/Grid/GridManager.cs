@@ -85,6 +85,7 @@ public class GridManager : MonoBehaviour
                 spawnedCards.Add(cardObj);
 
                 var card = cardObj.GetComponent<Card>();
+                
                 if (card == null)
                 {
                     Debug.LogWarning("Card component missing on spawned object!", cardObj);

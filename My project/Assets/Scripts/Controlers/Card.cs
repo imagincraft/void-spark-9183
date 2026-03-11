@@ -8,6 +8,9 @@ public class Card : MonoBehaviour
 
     public void Setup(int pairId, Sprite sprite)
     {
+        gameObject.SetActive(true);
+        transform.localScale = Vector3.one; 
+        
         PairId = pairId;
         frontImage.sprite = sprite;
     }

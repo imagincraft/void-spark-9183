@@ -14,13 +14,14 @@ public class GameTurnState : MonoBehaviour, IGameState
 {
     private readonly List<Card> flippedCards = new List<Card>();
 
-    public bool CanFlipMore => flippedCards.Count < 2;
+    public bool CanFlipMore => true;
 
     public void AddFlippedCard(Card card)
     {
         if (card == null || flippedCards.Contains(card)) return;
         flippedCards.Add(card);
     }
+
 
     public void ClearFlippedCards()
     {
@@ -30,5 +31,14 @@ public class GameTurnState : MonoBehaviour, IGameState
     public IReadOnlyList<Card> GetFlippedCards()
     {
         return flippedCards.AsReadOnly();
+    }
+    
+    public void RemoveFirstTwo()
+    {
+        if (flippedCards.Count >= 2)
+        {
+            flippedCards.RemoveAt(0);
+            flippedCards.RemoveAt(0);
+        }
     }
 }

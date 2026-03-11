@@ -21,6 +21,7 @@ public class CardFactory : MonoBehaviour, ICardFactory
         IReadOnlyList<Sprite> uniqueImages,
         System.Action<GameObject, Sprite> onCardCreated)
     {
+        
         if (totalCards % 2 == 1) totalCards--;
 
         int pairsNeeded = totalCards / 2;
@@ -46,6 +47,8 @@ public class CardFactory : MonoBehaviour, ICardFactory
         for (int i = 0; i < pairs.Count; i++)
         {
             GameObject cardObj = Instantiate(cardPrefab, parent);
+            
+          
 
             var card = cardObj.GetComponent<Card>();
             if (card != null)

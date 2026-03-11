@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -16,14 +17,25 @@ public interface ILevelManagerService
 public class LevelManager : MonoBehaviour, ILevelManagerService
 {
     [SerializeField] private List<LevelData> levels;
+    [SerializeField] private GameObject wonPanel;
 
     public LevelData CurrentLevel { get; private set; }
     private int currentIndex = 0;
+    
+    private IUiManagerService uiManager;
+    private IAudioService audioService;
 
     private void Awake()
     {
-   // ResetSave();
+   ResetSave();
     }
+
+    private void Start()
+    {
+        uiManager = GameManager.Instance.UiManagerService;
+        audioService = GameManager.Instance.AudioService;
+    }
+
     public void ResetSave()
     {
         PlayerPrefs.DeleteKey("MemoryGameSave");
@@ -47,9 +59,18 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
 
     public void LoadNextLevel()
     {
+        StartCoroutine(LoadNextLevelDelayed());
+    }
+
+    private IEnumerator LoadNextLevelDelayed()
+    {
+        yield return new WaitForSeconds(2f); // wait for UI to rebuild
+        uiManager.ClosePanel(wonPanel);
+        audioService.PlayAudio(AudioType.PanelClose);
         LoadLevel(currentIndex + 1);
         UnlockNextLevel();
     }
+
     
     public void UnlockNextLevel()
     {

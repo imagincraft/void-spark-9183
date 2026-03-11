@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LevelManager levelManager;
     [SerializeField] private UiManager uiManager;
     [SerializeField] private ScoreManager scoreManager;
+    [SerializeField] private AudioManager audioManager;
     public static GameManager Instance => instance;
 
     public IDataService DataService;
@@ -25,6 +26,7 @@ public class GameManager : MonoBehaviour
     public ILevelManagerService LevelManagerService;
     public IUiManagerService UiManagerService;
     public IScoreService ScoreService;
+    public IAudioService AudioService;
 
     
     public SaveData SaveData{get; private set;}
@@ -63,6 +65,7 @@ public class GameManager : MonoBehaviour
         LevelManagerService = levelManager;
         UiManagerService = uiManager;
         ScoreService = scoreManager;
+        AudioService = audioManager;
     }
 
     private void Start()
