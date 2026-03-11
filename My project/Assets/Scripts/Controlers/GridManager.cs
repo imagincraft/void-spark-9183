@@ -8,9 +8,9 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Transform gridContainer;
     [SerializeField] private Card cardComponentPrefab;           // reference to Card script on prefab (for GetComponent)
 
-    [Header("Dependencies (assign concrete implementations here)")]
-    [SerializeField] private CardFactory cardFactoryComponent;          // ← concrete class
-    [SerializeField] private GridLayoutConfigurator layoutConfiguratorComponent;  // ← concrete class
+    // [Header("Dependencies (assign concrete implementations here)")]
+    // [SerializeField] private CardFactory cardFactoryComponent;          // ← concrete class
+    // [SerializeField] private GridLayoutConfigurator layoutConfiguratorComponent;  // ← concrete class
 
     private ICardFactory cardFactory;     // runtime interface reference
     private IGridLayoutConfigurator layoutConfigurator;
@@ -27,8 +27,8 @@ public class GridManager : MonoBehaviour
     private void Awake()
     {
         // Get the interfaces from the concrete components
-        cardFactory = cardFactoryComponent;
-        layoutConfigurator = layoutConfiguratorComponent;
+        cardFactory = GameManager.Instance.CardFactory;
+        layoutConfigurator = GameManager.Instance.GridLayoutConfigurator;
 
         if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
         if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);

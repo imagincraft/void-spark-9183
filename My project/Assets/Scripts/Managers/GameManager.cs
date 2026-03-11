@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,19 +6,45 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     private static GameManager instance;
+    
+    [SerializeField] private DataManager dataManager;
+    [SerializeField] private GridLayoutConfigurator gridLayoutConfigurator;
+    [SerializeField] private CardFactory cardFactory;
     public static GameManager Instance => instance;
 
-    public DataManager dataManager;
+    public IDataService DataService;
+    public IGridLayoutConfigurator GridLayoutConfigurator;
+    public ICardFactory CardFactory;
    
 
     void Awake()
+{
+    // singleton part ...
+    if (instance != null && instance != this)
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
+        Destroy(gameObject);
+        return;
     }
+    instance = this;
+    DontDestroyOnLoad(gameObject);   // ← usually good idea for GameManager
+
+    // ──────────────────────────────────────────────
+    // Better null check with names
+    if (dataManager == null)          Debug.LogError("dataManager is NULL", this);
+    if (gridLayoutConfigurator == null) Debug.LogError("gridLayoutConfigurator is NULL", this);
+    if (cardFactory == null)          Debug.LogError("cardFactory is NULL", this);
+
+    if (dataManager == null || gridLayoutConfigurator == null || cardFactory == null)
+    {
+        Debug.LogError("GameManager missing required references – stopping.", this);
+        // throw new ...   ← comment out for now so you see the logs
+        return;
+    }
+
+    DataService            = dataManager;
+    GridLayoutConfigurator = gridLayoutConfigurator;
+    CardFactory            = cardFactory;
+}
 
 
 }
