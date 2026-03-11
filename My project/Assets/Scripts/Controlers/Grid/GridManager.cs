@@ -52,7 +52,9 @@ public class GridManager : MonoBehaviour
 
         if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
         if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);
-        levelManagerService.LoadLevel(1);
+        
+        // levelManagerService.LoadLevel(0);
+        
         // GenerateGrid(rows, columns);
     }
 
@@ -61,19 +63,6 @@ public class GridManager : MonoBehaviour
         ClearPreviousCards();
 
         int totalCards = rowCount * colCount;
-
-        // Spawn cards via factory
-        /*cardFactory.CreateCards(
-            gridContainer,
-            totalCards,
-            uniqueCardImages,
-            (cardObj, sprite) =>
-            {
-                spawnedCards.Add(cardObj);
-                var card = cardObj.GetComponent<Card>();
-                if (card != null) card.SetImage(sprite);
-                else Debug.LogWarning("Card component missing on spawned object!", cardObj);
-            });*/
         
         
         cardFactory.CreateCards(

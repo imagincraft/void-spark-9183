@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public static class LevelEvents
 {
     public static Action<LevelData> OnLevelLoaded;
+    public static Action OnLevelCompleted;
 }
 public interface ILevelManagerService
 {
@@ -27,7 +28,7 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
 
     private void Awake()
     {
-   ResetSave();
+   // ResetSave();
     }
 
     private void Start()
@@ -42,6 +43,19 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
         PlayerPrefs.Save();
     }
 
+    
+    private void OnEnable()
+    {
+        LevelEvents.OnLevelCompleted += HandleLevelCompleted;
+    }
+
+    private void OnDisable()
+    {
+        LevelEvents.OnLevelCompleted -= HandleLevelCompleted;
+    }
+    
+    
+    
     public void LoadLevel(int index)
     {
         if (index < 0 || index >= levels.Count)
@@ -64,11 +78,25 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
 
     private IEnumerator LoadNextLevelDelayed()
     {
-        yield return new WaitForSeconds(2f); // wait for UI to rebuild
+        yield return new WaitForSeconds(1f);
+
         uiManager.ClosePanel(wonPanel);
         audioService.PlayAudio(AudioType.PanelClose);
-        LoadLevel(currentIndex + 1);
+
+        currentIndex++; // move to next level
+
+        if (currentIndex >= levels.Count)
+            currentIndex = 0; // loop back to level 1
+
+        LoadLevel(currentIndex);
         UnlockNextLevel();
+    }
+
+    
+    
+    private void HandleLevelCompleted()
+    {
+        LoadNextLevel();
     }
 
     
