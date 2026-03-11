@@ -13,6 +13,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameTurnState gameTurnState;
     [SerializeField] private SimpleCardMatcher SimpleCardMatcher;
     [SerializeField] private LevelManager levelManager;
+    [SerializeField] private UiManager uiManager;
+    [SerializeField] private ScoreManager scoreManager;
     public static GameManager Instance => instance;
 
     public IDataService DataService;
@@ -21,10 +23,15 @@ public class GameManager : MonoBehaviour
     public IGameState GameTurnStateService;
     public ICardMatcher CardMatcherService;
     public ILevelManagerService LevelManagerService;
+    public IUiManagerService UiManagerService;
+    public IScoreService ScoreService;
 
+    
+    public SaveData SaveData{get; private set;}
 
     void Awake()
     {
+        SaveData = SaveSystem.Load();
         // singleton part ...
         if (instance != null && instance != this)
         {
@@ -54,5 +61,13 @@ public class GameManager : MonoBehaviour
         GameTurnStateService = gameTurnState;
         CardMatcherService = SimpleCardMatcher;
         LevelManagerService = levelManager;
+        UiManagerService = uiManager;
+        ScoreService = scoreManager;
+    }
+
+    private void Start()
+    {
+        int savedLevel = SaveData.unlockedLevel;
+        LevelManagerService.LoadLevel(savedLevel);
     }
 }

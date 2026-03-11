@@ -4,8 +4,11 @@ using UnityEngine.UI;
 
 public class MatchingHandler : MonoBehaviour
 {
+    //Services
     private ICardMatcher matcher;
     private IGameState gameState;
+    private IScoreService scoreService;
+
     [SerializeField] private float revealDelay = 1f;
     [SerializeField] private float flipBackDelay = 0.6f;
 
@@ -13,6 +16,8 @@ public class MatchingHandler : MonoBehaviour
     {
         matcher = GameManager.Instance.CardMatcherService;
         gameState = GameManager.Instance.GameTurnStateService;
+        scoreService = GameManager.Instance.ScoreService;
+
         if (matcher == null || gameState == null)
         {
             Debug.LogError("Matcher or GameState missing!", this);
@@ -39,9 +44,10 @@ public class MatchingHandler : MonoBehaviour
         yield return new WaitForSeconds(revealDelay);
 
         bool match = matcher.IsMatching(first, second);
-
+        scoreService.AddTurn();
         if (match)
         {
+            scoreService.AddScore(1);
             Debug.Log("[Matching] MATCH! Keeping face up");
             first.GetComponent<Button>().interactable = false;
             second.GetComponent<Button>().interactable = false;

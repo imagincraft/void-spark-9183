@@ -20,10 +20,14 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
     public LevelData CurrentLevel { get; private set; }
     private int currentIndex = 0;
 
-    private void Start()
+    private void Awake()
     {
-        // LoadLevel(0);
-        Debug.Log("Level 1 loaded");
+   // ResetSave();
+    }
+    public void ResetSave()
+    {
+        PlayerPrefs.DeleteKey("MemoryGameSave");
+        PlayerPrefs.Save();
     }
 
     public void LoadLevel(int index)
@@ -44,5 +48,22 @@ public class LevelManager : MonoBehaviour, ILevelManagerService
     public void LoadNextLevel()
     {
         LoadLevel(currentIndex + 1);
+        UnlockNextLevel();
     }
+    
+    public void UnlockNextLevel()
+    {
+        var save = GameManager.Instance.SaveData;
+
+        int maxLevel = levels.Count - 1;
+
+        // Only unlock if not already at max
+        if (save.unlockedLevel < maxLevel)
+        {
+            save.unlockedLevel++;
+            SaveSystem.Save(save);
+        }
+    }
+
+
 }
