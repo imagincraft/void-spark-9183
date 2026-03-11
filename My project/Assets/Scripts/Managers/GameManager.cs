@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private CardFactory cardFactory;
     [SerializeField] private GameTurnState gameTurnState;
     [SerializeField] private SimpleCardMatcher SimpleCardMatcher;
+    [SerializeField] private LevelManager levelManager;
     public static GameManager Instance => instance;
 
     public IDataService DataService;
@@ -19,6 +20,7 @@ public class GameManager : MonoBehaviour
     public ICardFactory CardFactoryService;
     public IGameState GameTurnStateService;
     public ICardMatcher CardMatcherService;
+    public ILevelManagerService LevelManagerService;
 
 
     void Awake()
@@ -51,5 +53,6 @@ public class GameManager : MonoBehaviour
         CardFactoryService = cardFactory;
         GameTurnStateService = gameTurnState;
         CardMatcherService = SimpleCardMatcher;
+        LevelManagerService = levelManager;
     }
 }

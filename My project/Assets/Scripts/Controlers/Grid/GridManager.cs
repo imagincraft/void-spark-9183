@@ -15,6 +15,7 @@ public class GridManager : MonoBehaviour
 
     private ICardFactory cardFactory; // runtime interface reference
     private IGridLayoutConfigurator layoutConfigurator;
+    private ILevelManagerService levelManagerService;
 
     [Header("Images")] [SerializeField] private List<Sprite> uniqueCardImages;
 
@@ -27,15 +28,32 @@ public class GridManager : MonoBehaviour
     {
         // Get the interfaces from the concrete components
     }
+    
+    private void OnEnable()
+    {
+        LevelEvents.OnLevelLoaded += OnLevelLoaded;
+    }
+
+    private void OnDisable()
+    {
+        LevelEvents.OnLevelLoaded -= OnLevelLoaded;
+    }
+
+    private void OnLevelLoaded(LevelData level)
+    {
+        GenerateGrid(level.rows, level.columns);
+    }
 
     private void Start()
     {
         cardFactory = GameManager.Instance.CardFactoryService;
         layoutConfigurator = GameManager.Instance.GridLayoutConfiguratorService;
+        levelManagerService = GameManager.Instance.LevelManagerService;
 
         if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
         if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);
-        GenerateGrid(rows, columns);
+        levelManagerService.LoadLevel(1);
+        // GenerateGrid(rows, columns);
     }
 
     public void GenerateGrid(int rowCount, int colCount)
