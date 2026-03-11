@@ -16,10 +16,12 @@ public class MatchingHandler : MonoBehaviour
     [SerializeField] private float flipBackDelay = 0.1f;
     private int matchedPairs = 0;
     private int totalPairs = 0;
+    private int comboCount = 0;
+    private float comboMultiplier = 1f;
 
 
     [SerializeField] public GameObject wonPanel;
-    
+
     private Queue<(Card, Card)> matchQueue = new Queue<(Card, Card)>();
     private bool isProcessingQueue = false;
 
@@ -36,8 +38,8 @@ public class MatchingHandler : MonoBehaviour
             Debug.LogError("Matcher or GameState missing!", this);
         }
     }
-    
-    
+
+
     private void OnEnable()
     {
         LevelEvents.OnLevelLoaded += OnLevelLoaded;
@@ -55,8 +57,10 @@ public class MatchingHandler : MonoBehaviour
 
         matchedPairs = 0;
         totalPairs = (level.rows * level.columns) / 2;
+        
+        comboCount = 0;
+        comboMultiplier = 1f;
     }
-
 
 
     private void Update()
@@ -77,7 +81,7 @@ public class MatchingHandler : MonoBehaviour
                 StartCoroutine(ProcessQueue());
         }
     }
-    
+
     private IEnumerator ProcessQueue()
     {
         isProcessingQueue = true;
@@ -90,7 +94,7 @@ public class MatchingHandler : MonoBehaviour
 
         isProcessingQueue = false;
     }
-    
+
 
     // private bool isCheckingMatch = false;
 
@@ -102,22 +106,27 @@ public class MatchingHandler : MonoBehaviour
 
         bool match = matcher.IsMatching(first, second);
         scoreService.AddTurn();
+
         if (match)
         {
-            
             audioService.PlayAudio(AudioType.ImageClicking);
-            scoreService.AddScore(1);
-            
+
+            comboCount++;
+            comboMultiplier = 1f + (comboCount - 1) * 0.5f; // each combo adds +0.5
+
+            int gainedScore = Mathf.RoundToInt(1 * comboMultiplier);
+            scoreService.AddScore(gainedScore);
+
             matchedPairs++;
-            
+
             if (matchedPairs >= totalPairs)
             {
                 Debug.Log("ALL MATCHES FOUND!");
+                yield return new WaitForSeconds(1.5f);
                 audioService.PlayAudio(AudioType.PanelOpen);
                 uiManager.OpenPanel(wonPanel);
-               
             }
-            
+
             Debug.Log("[Matching] MATCH! Keeping face up");
             first.GetComponent<Button>().interactable = false;
             second.GetComponent<Button>().interactable = false;
@@ -125,6 +134,10 @@ public class MatchingHandler : MonoBehaviour
         else
         {
             audioService.PlayAudio(AudioType.Error);
+
+            comboCount = 0;
+            comboMultiplier = 1f;
+
             Debug.Log("[Matching] NO MATCH - flipping back");
             yield return new WaitForSeconds(flipBackDelay);
 
