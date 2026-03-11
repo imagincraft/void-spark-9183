@@ -4,22 +4,21 @@ using System.Collections.Generic;
 
 public class GridManager : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private Transform gridContainer;
-    [SerializeField] private Card cardComponentPrefab;           // reference to Card script on prefab (for GetComponent)
+    [Header("References")] [SerializeField]
+    private Transform gridContainer;
+
+    [SerializeField] private Card cardComponentPrefab; // reference to Card script on prefab (for GetComponent)
 
     // [Header("Dependencies (assign concrete implementations here)")]
     // [SerializeField] private CardFactory cardFactoryComponent;          // ← concrete class
     // [SerializeField] private GridLayoutConfigurator layoutConfiguratorComponent;  // ← concrete class
 
-    private ICardFactory cardFactory;     // runtime interface reference
+    private ICardFactory cardFactory; // runtime interface reference
     private IGridLayoutConfigurator layoutConfigurator;
-    
-    [Header("Images")]
-    [SerializeField] private List<Sprite> uniqueCardImages;
 
-    [Header("Grid Size")]
-    [SerializeField] private int rows = 2;
+    [Header("Images")] [SerializeField] private List<Sprite> uniqueCardImages;
+
+    [Header("Grid Size")] [SerializeField] private int rows = 2;
     [SerializeField] private int columns = 2;
 
     private readonly List<GameObject> spawnedCards = new List<GameObject>();
@@ -27,15 +26,15 @@ public class GridManager : MonoBehaviour
     private void Awake()
     {
         // Get the interfaces from the concrete components
-        cardFactory = GameManager.Instance.CardFactory;
-        layoutConfigurator = GameManager.Instance.GridLayoutConfigurator;
-
-        if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
-        if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);
     }
 
     private void Start()
     {
+        cardFactory = GameManager.Instance.CardFactoryService;
+        layoutConfigurator = GameManager.Instance.GridLayoutConfiguratorService;
+
+        if (cardFactory == null) Debug.LogError("CardFactory missing or not implementing ICardFactory!", this);
+        if (layoutConfigurator == null) Debug.LogError("LayoutConfigurator missing!", this);
         GenerateGrid(rows, columns);
     }
 
@@ -46,7 +45,7 @@ public class GridManager : MonoBehaviour
         int totalCards = rowCount * colCount;
 
         // Spawn cards via factory
-        cardFactory.CreateCards(
+        /*cardFactory.CreateCards(
             gridContainer,
             totalCards,
             uniqueCardImages,
@@ -56,6 +55,22 @@ public class GridManager : MonoBehaviour
                 var card = cardObj.GetComponent<Card>();
                 if (card != null) card.SetImage(sprite);
                 else Debug.LogWarning("Card component missing on spawned object!", cardObj);
+            });*/
+        
+        
+        cardFactory.CreateCards(
+            gridContainer,
+            totalCards,
+            uniqueCardImages,
+            (cardObj, sprite) =>
+            {
+                spawnedCards.Add(cardObj);
+
+                var card = cardObj.GetComponent<Card>();
+                if (card == null)
+                {
+                    Debug.LogWarning("Card component missing on spawned object!", cardObj);
+                }
             });
 
         // Apply layout
@@ -71,7 +86,8 @@ public class GridManager : MonoBehaviour
     private void ClearPreviousCards()
     {
         foreach (var card in spawnedCards)
-            if (card != null) Destroy(card);
+            if (card != null)
+                Destroy(card);
 
         spawnedCards.Clear();
     }

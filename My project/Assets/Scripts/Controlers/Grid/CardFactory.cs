@@ -24,33 +24,37 @@ public class CardFactory : MonoBehaviour, ICardFactory
         if (totalCards % 2 == 1) totalCards--;
 
         int pairsNeeded = totalCards / 2;
+        if (pairsNeeded > uniqueImages.Count) pairsNeeded = uniqueImages.Count;
 
-        if (pairsNeeded > uniqueImages.Count)
-        {
-            Debug.LogWarning($"Not enough unique images. Using {uniqueImages.Count} pairs.");
-            pairsNeeded = uniqueImages.Count;
-        }
+        // Build pairs WITH correct pairId
+        var pairs = new List<(Sprite sprite, int pairId)>();
 
-        // Build pair list
-        var cardImages = new List<Sprite>(totalCards);
         for (int i = 0; i < pairsNeeded; i++)
         {
-            cardImages.Add(uniqueImages[i]);
-            cardImages.Add(uniqueImages[i]);
+            pairs.Add((uniqueImages[i], i));
+            pairs.Add((uniqueImages[i], i));
         }
 
         // Shuffle
-        for (int i = cardImages.Count - 1; i > 0; i--)
+        for (int i = pairs.Count - 1; i > 0; i--)
         {
             int rnd = Random.Range(0, i + 1);
-            (cardImages[i], cardImages[rnd]) = (cardImages[rnd], cardImages[i]);
+            (pairs[i], pairs[rnd]) = (pairs[rnd], pairs[i]);
         }
 
-        // Spawn
-        for (int i = 0; i < cardImages.Count; i++)
+        // Spawn cards
+        for (int i = 0; i < pairs.Count; i++)
         {
-            GameObject card = Instantiate(cardPrefab, parent);
-            onCardCreated?.Invoke(card, cardImages[i]);
+            GameObject cardObj = Instantiate(cardPrefab, parent);
+
+            var card = cardObj.GetComponent<Card>();
+            if (card != null)
+            {
+                card.Setup(pairs[i].pairId, pairs[i].sprite);
+            }
+
+            onCardCreated?.Invoke(cardObj, pairs[i].sprite);
         }
     }
+
 }

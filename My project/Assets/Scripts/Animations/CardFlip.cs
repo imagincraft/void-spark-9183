@@ -15,15 +15,25 @@ public class CardFlip : MonoBehaviour
     private bool isFlipped = false;
     private bool isAnimating = false;
 
+// NEW: dependency
+    private IGameState gameState;
+
     private void Awake()
     {
         button = GetComponent<Button>();
+        if (button == null)
+        {
+            Debug.LogError("No Button on " + gameObject.name, gameObject);
+            return;
+        }
+
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(OnCardClicked);
+        button.onClick.AddListener(OnClicked);
     }
 
     private void Start()
     {
+        gameState = GameManager.Instance.GameTurnStateService;
         frontSide.SetActive(true);
         backSide.SetActive(false);
         visualRoot.localRotation = Quaternion.identity;
@@ -37,14 +47,20 @@ public class CardFlip : MonoBehaviour
         yield return StartCoroutine(FlipToBack());
     }
 
-    public void OnCardClicked()
+    public void OnClicked()
     {
-        Debug.Log("clicked back image");
-        if (isAnimating || !isFlipped) return;
+        var card = GetComponent<Card>();
+        int id = card != null ? card.PairId : -1;
+
+        Debug.Log($"[Click] Card clicked! PairId = {id} | Name = {gameObject.name}");
+
+        if (isAnimating || !isFlipped || !gameState.CanFlipMore) return;
+
         StartCoroutine(FlipToFront());
+        gameState.AddFlippedCard(card);
     }
 
-    private IEnumerator FlipToBack()
+    public IEnumerator FlipToBack()
     {
         isAnimating = true;
         isFlipped = true;
@@ -64,19 +80,21 @@ public class CardFlip : MonoBehaviour
                 frontSide.SetActive(false);
                 backSide.SetActive(true);
             }
+
             yield return null;
         }
 
         visualRoot.localRotation = endRot;
         isAnimating = false;
+        Debug.Log(gameObject.name + " finished flip to " + (isFlipped ? "BACK" : "FRONT"));
     }
 
-    private IEnumerator FlipToFront()
+    public IEnumerator FlipToFront()
     {
         isAnimating = true;
         isFlipped = false;
 
-        Quaternion startRot = visualRoot.localRotation;
+        Quaternion startRot = transform.localRotation;
         Quaternion endRot = Quaternion.identity;
 
         float elapsed = 0f;
@@ -84,17 +102,19 @@ public class CardFlip : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / flipDuration;
-            visualRoot.localRotation = Quaternion.Slerp(startRot, endRot, t);
+            transform.localRotation = Quaternion.Slerp(startRot, endRot, t);
 
             if (t >= 0.5f && backSide.activeSelf)
             {
                 backSide.SetActive(false);
                 frontSide.SetActive(true);
             }
+
             yield return null;
         }
 
-        visualRoot.localRotation = endRot;
+        transform.localRotation = endRot;
         isAnimating = false;
+        Debug.Log(gameObject.name + " finished flip to " + (isFlipped ? "BACK" : "FRONT"));
     }
 }
